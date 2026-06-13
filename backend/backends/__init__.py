@@ -215,6 +215,7 @@ TTS_ENGINES = {
     "chatterbox_turbo": "Chatterbox Turbo",
     "tada": "TADA",
     "kokoro": "Kokoro",
+    "dots_tts": "dots.tts",
 }
 
 LLM_ENGINES = {
@@ -363,6 +364,46 @@ def _get_non_qwen_tts_configs() -> list[ModelConfig]:
             hf_repo_id="hexgrad/Kokoro-82M",
             size_mb=350,
             languages=["en", "es", "fr", "hi", "it", "pt", "ja", "zh"],
+        ),
+        # dots.tts — 2B continuous AR TTS, 48 kHz, 24 languages
+        ModelConfig(
+            model_name="dots-tts-soar",
+            display_name="dots.tts SOAR (Best Cloning)",
+            engine="dots_tts",
+            hf_repo_id="rednote-hilab/dots.tts-soar",
+            model_size="soar",
+            size_mb=4000,
+            languages=[
+                "ar", "zh", "de", "es", "en", "fr", "it", "ja",
+                "pl", "pt", "ru", "ko", "nl", "fi", "el", "hi",
+                "ms", "no", "sv", "cs", "da", "ro", "th", "tr",
+            ],
+        ),
+        ModelConfig(
+            model_name="dots-tts-base",
+            display_name="dots.tts Base",
+            engine="dots_tts",
+            hf_repo_id="rednote-hilab/dots.tts-base",
+            model_size="base",
+            size_mb=4000,
+            languages=[
+                "ar", "zh", "de", "es", "en", "fr", "it", "ja",
+                "pl", "pt", "ru", "ko", "nl", "fi", "el", "hi",
+                "ms", "no", "sv", "cs", "da", "ro", "th", "tr",
+            ],
+        ),
+        ModelConfig(
+            model_name="dots-tts-mf",
+            display_name="dots.tts MF (Fast)",
+            engine="dots_tts",
+            hf_repo_id="rednote-hilab/dots.tts-mf",
+            model_size="mf",
+            size_mb=4000,
+            languages=[
+                "ar", "zh", "de", "es", "en", "fr", "it", "ja",
+                "pl", "pt", "ru", "ko", "nl", "fi", "el", "hi",
+                "ms", "no", "sv", "cs", "da", "ro", "th", "tr",
+            ],
         ),
     ]
 
@@ -515,7 +556,7 @@ async def load_engine_model(engine: str, model_size: str = "default") -> None:
     backend = get_tts_backend_for_engine(engine)
     if engine in ("qwen", "qwen_custom_voice"):
         await backend.load_model_async(model_size)
-    elif engine == "tada":
+    elif engine in ("tada", "dots_tts"):
         await backend.load_model(model_size)
     else:
         await backend.load_model()
@@ -532,7 +573,7 @@ async def ensure_model_cached_or_raise(engine: str, model_size: str = "default")
             cfg = c
             break
 
-    if engine in ("qwen", "qwen_custom_voice", "tada"):
+    if engine in ("qwen", "qwen_custom_voice", "tada", "dots_tts"):
         if not backend._is_model_cached(model_size):
             raise HTTPException(
                 status_code=400,
@@ -583,6 +624,14 @@ def unload_model_by_config(config: ModelConfig) -> bool:
             return True
         return False
 
+    if config.engine == "dots_tts":
+        backend = get_tts_backend_for_engine(config.engine)
+        loaded_size = getattr(backend, "_current_model_size", None) or getattr(backend, "model_size", None)
+        if backend.is_loaded() and loaded_size == config.model_size:
+            backend.unload_model()
+            return True
+        return False
+
     # All other TTS engines
     backend = get_tts_backend_for_engine(config.engine)
     if backend.is_loaded():
@@ -616,6 +665,11 @@ def check_model_loaded(config: ModelConfig) -> bool:
             loaded_size = getattr(backend, "_current_model_size", None) or getattr(backend, "model_size", None)
             return backend.is_loaded() and loaded_size == config.model_size
 
+        if config.engine == "dots_tts":
+            backend = get_tts_backend_for_engine(config.engine)
+            loaded_size = getattr(backend, "_current_model_size", None) or getattr(backend, "model_size", None)
+            return backend.is_loaded() and loaded_size == config.model_size
+
         backend = get_tts_backend_for_engine(config.engine)
         return backend.is_loaded()
     except Exception:
@@ -638,6 +692,9 @@ def get_model_load_func(config: ModelConfig):
 
     if config.engine == "qwen_llm":
         return lambda: llm_service.get_llm_model().load_model(config.model_size)
+
+    if config.engine == "dots_tts":
+        return lambda: get_tts_backend_for_engine(config.engine).load_model(config.model_size)
 
     return lambda: get_tts_backend_for_engine(config.engine).load_model()
 
@@ -708,6 +765,10 @@ def get_tts_backend_for_engine(engine: str) -> TTSBackend:
             from .qwen_custom_voice_backend import QwenCustomVoiceBackend
 
             backend = QwenCustomVoiceBackend()
+        elif engine == "dots_tts":
+            from .dots_tts_backend import DotsTTSBackend
+
+            backend = DotsTTSBackend()
         else:
             raise ValueError(f"Unknown TTS engine: {engine}. Supported: {list(TTS_ENGINES.keys())}")
 
