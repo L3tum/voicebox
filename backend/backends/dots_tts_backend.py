@@ -10,9 +10,8 @@ No MPS support — dots.tts only supports CUDA or CPU.
 
 import asyncio
 import logging
-import threading
 from pathlib import Path
-from typing import ClassVar, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -53,9 +52,6 @@ _REQUIRED_FILES = [
 
 class DotsTTSBackend:
     """dots.tts backend — 2B continuous AR TTS, 48 kHz output."""
-
-    # Class-level lock for torch.load monkey-patching (CPU fallback)
-    _load_lock: ClassVar[threading.Lock] = threading.Lock()
 
     def __init__(self):
         self.model = None  # DotsTtsRuntime instance
@@ -177,7 +173,8 @@ class DotsTTSBackend:
             logger.warning(f"Reference audio not found: {ref_audio}")
             ref_audio = None
 
-        # Normalize language code to uppercase for dots.tts
+        # Voicebox API uses lowercase BCP-47 codes (e.g. "en", "zh"),
+        # but dots.tts runtime expects uppercase (e.g. "EN", "ZH").
         dots_language = language.upper() if language else None
 
         # Get recommended num_steps for this variant
@@ -200,6 +197,8 @@ class DotsTTSBackend:
                 prompt_text=ref_text,
                 language=dots_language,
                 num_steps=num_steps,
+                # Guidance scale 1.2 is the default recommended by dots.tts authors.
+                # Higher values increase fidelity but may reduce naturalness.
                 guidance_scale=1.2,
             )
 

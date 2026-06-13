@@ -313,8 +313,6 @@ def build_server(cuda=False):
             "--collect-all",
             "misaki",
             # that must be bundled for espeak/en/ja/zh G2P to work
-            "--collect-all",
-            "misaki",
             # language_tags ships JSON data files (index.json etc.) loaded at
             # runtime via: misaki → phonemizer → segments → csvw → language_tags
             "--collect-all",

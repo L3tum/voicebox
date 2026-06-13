@@ -616,15 +616,7 @@ def unload_model_by_config(config: ModelConfig) -> bool:
             return True
         return False
 
-    if config.engine == "qwen_custom_voice":
-        backend = get_tts_backend_for_engine(config.engine)
-        loaded_size = getattr(backend, "_current_model_size", None) or getattr(backend, "model_size", None)
-        if backend.is_loaded() and loaded_size == config.model_size:
-            backend.unload_model()
-            return True
-        return False
-
-    if config.engine == "dots_tts":
+    if config.engine in ("qwen_custom_voice", "dots_tts"):
         backend = get_tts_backend_for_engine(config.engine)
         loaded_size = getattr(backend, "_current_model_size", None) or getattr(backend, "model_size", None)
         if backend.is_loaded() and loaded_size == config.model_size:
@@ -660,12 +652,7 @@ def check_model_loaded(config: ModelConfig) -> bool:
             loaded_size = getattr(tts_model, "_current_model_size", None) or getattr(tts_model, "model_size", None)
             return tts_model.is_loaded() and loaded_size == config.model_size
 
-        if config.engine == "qwen_custom_voice":
-            backend = get_tts_backend_for_engine(config.engine)
-            loaded_size = getattr(backend, "_current_model_size", None) or getattr(backend, "model_size", None)
-            return backend.is_loaded() and loaded_size == config.model_size
-
-        if config.engine == "dots_tts":
+        if config.engine in ("qwen_custom_voice", "dots_tts"):
             backend = get_tts_backend_for_engine(config.engine)
             loaded_size = getattr(backend, "_current_model_size", None) or getattr(backend, "model_size", None)
             return backend.is_loaded() and loaded_size == config.model_size
@@ -687,14 +674,11 @@ def get_model_load_func(config: ModelConfig):
     if config.engine == "qwen":
         return lambda: tts.get_tts_model().load_model(config.model_size)
 
-    if config.engine == "qwen_custom_voice":
+    if config.engine in ("qwen_custom_voice", "dots_tts"):
         return lambda: get_tts_backend_for_engine(config.engine).load_model(config.model_size)
 
     if config.engine == "qwen_llm":
         return lambda: llm_service.get_llm_model().load_model(config.model_size)
-
-    if config.engine == "dots_tts":
-        return lambda: get_tts_backend_for_engine(config.engine).load_model(config.model_size)
 
     return lambda: get_tts_backend_for_engine(config.engine).load_model()
 
