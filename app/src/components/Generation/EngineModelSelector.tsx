@@ -99,7 +99,7 @@ export function applyEngineSelection(form: UseFormReturn<GenerationFormValues>, 
   } else if (value.startsWith('dots_tts:')) {
     const [, modelSize] = value.split(':');
     form.setValue('engine', 'dots_tts');
-    form.setValue('modelSize', modelSize as 'soar' | 'base' | 'mf');
+    form.setValue('modelSize', modelSize as GenerationFormValues['modelSize']);
     // Validate language is supported by dots_tts
     const currentLang = form.getValues('language');
     const available = getLanguageOptionsForEngine('dots_tts');
@@ -108,7 +108,7 @@ export function applyEngineSelection(form: UseFormReturn<GenerationFormValues>, 
     }
   } else {
     form.setValue('engine', value as GenerationFormValues['engine']);
-    form.setValue('modelSize', undefined as unknown as '1.7B' | '0.6B');
+    form.setValue('modelSize', undefined);
     if (ENGLISH_ONLY_ENGINES.has(value)) {
       form.setValue('language', 'en');
     } else {
