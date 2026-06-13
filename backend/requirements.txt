@@ -43,6 +43,15 @@ torchaudio
 # Kokoro TTS (lightweight 82M-param engine)
 kokoro>=0.9.4
 misaki[en,ja,zh]>=0.9.4
+
+# dots.tts (2B continuous AR TTS, 48kHz, 24 languages)
+# Installed --no-deps in the setup script because it pins torch>=2.8.0
+# which conflicts with our torch>=2.2.0. Its deps (torchdiffeq,
+# lingua-language-detector, langcodes, loguru, einops) are listed below.
+dots.tts>=0.1.0
+torchdiffeq
+lingua-language-detector
+langcodes[data]
 # spacy model for misaki English G2P — must be pre-installed or misaki
 # tries spacy.cli.download() at runtime which crashes frozen builds
 en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl

@@ -27,6 +27,9 @@ const ENGINE_OPTIONS = [
   { value: 'tada:1B', label: 'TADA 1B', engine: 'tada' },
   { value: 'tada:3B', label: 'TADA 3B Multilingual', engine: 'tada' },
   { value: 'kokoro', label: 'Kokoro 82M', engine: 'kokoro' },
+  { value: 'dots_tts:soar', label: 'dots.tts SOAR', engine: 'dots_tts' },
+  { value: 'dots_tts:base', label: 'dots.tts Base', engine: 'dots_tts' },
+  { value: 'dots_tts:mf', label: 'dots.tts MF (Fast)', engine: 'dots_tts' },
 ] as const;
 
 const ENGINE_DESCRIPTIONS: Record<string, string> = {
@@ -37,13 +40,14 @@ const ENGINE_DESCRIPTIONS: Record<string, string> = {
   chatterbox_turbo: 'English, [laugh] [cough] tags',
   tada: 'HumeAI, 700s+ coherent audio',
   kokoro: '82M params, CPU realtime, 8 langs',
+  dots_tts: '2B params, 24 langs, SOTA quality',
 };
 
 /** Engines that only support English and should force language to 'en' on select. */
 const ENGLISH_ONLY_ENGINES = new Set(['luxtts', 'chatterbox_turbo']);
 
 /** Engines that support cloned (reference audio) profiles. */
-const CLONING_ENGINES = new Set(['qwen', 'luxtts', 'chatterbox', 'chatterbox_turbo', 'tada']);
+const CLONING_ENGINES = new Set(['qwen', 'luxtts', 'chatterbox', 'chatterbox_turbo', 'tada', 'dots_tts']);
 
 function getAvailableOptions(selectedProfile?: VoiceProfileResponse | null) {
   if (!selectedProfile) return ENGINE_OPTIONS;
@@ -54,6 +58,7 @@ function getSelectValue(engine: string, modelSize?: string): string {
   if (engine === 'qwen') return `qwen:${modelSize || '1.7B'}`;
   if (engine === 'qwen_custom_voice') return `qwen_custom_voice:${modelSize || '1.7B'}`;
   if (engine === 'tada') return `tada:${modelSize || '1B'}`;
+  if (engine === 'dots_tts') return `dots_tts:${modelSize || 'soar'}`;
   return engine;
 }
 
@@ -91,9 +96,19 @@ export function applyEngineSelection(form: UseFormReturn<GenerationFormValues>, 
         form.setValue('language', available[0]?.value ?? 'en');
       }
     }
+  } else if (value.startsWith('dots_tts:')) {
+    const [, modelSize] = value.split(':');
+    form.setValue('engine', 'dots_tts');
+    form.setValue('modelSize', modelSize as GenerationFormValues['modelSize']);
+    // Validate language is supported by dots_tts
+    const currentLang = form.getValues('language');
+    const available = getLanguageOptionsForEngine('dots_tts');
+    if (!available.some((l) => l.value === currentLang)) {
+      form.setValue('language', available[0]?.value ?? 'en');
+    }
   } else {
     form.setValue('engine', value as GenerationFormValues['engine']);
-    form.setValue('modelSize', undefined as unknown as '1.7B' | '0.6B');
+    form.setValue('modelSize', undefined);
     if (ENGLISH_ONLY_ENGINES.has(value)) {
       form.setValue('language', 'en');
     } else {

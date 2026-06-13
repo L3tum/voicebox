@@ -6,11 +6,13 @@
  * Chatterbox Multilingual supports 23 languages.
  * Chatterbox Turbo is English-only.
  * Kokoro supports 8 languages.
+ * dots.tts supports 24 languages.
  */
 
 /** All languages that any engine supports. */
 export const ALL_LANGUAGES = {
   ar: 'Arabic',
+  cs: 'Czech',
   da: 'Danish',
   de: 'German',
   el: 'Greek',
@@ -28,9 +30,11 @@ export const ALL_LANGUAGES = {
   no: 'Norwegian',
   pl: 'Polish',
   pt: 'Portuguese',
+  ro: 'Romanian',
   ru: 'Russian',
   sv: 'Swedish',
   sw: 'Swahili',
+  th: 'Thai',
   tr: 'Turkish',
   zh: 'Chinese',
 } as const;
@@ -70,6 +74,11 @@ export const ENGINE_LANGUAGES: Record<string, readonly LanguageCode[]> = {
   tada: ['en', 'ar', 'zh', 'de', 'es', 'fr', 'it', 'ja', 'pl', 'pt'],
   kokoro: ['en', 'es', 'fr', 'hi', 'it', 'pt', 'ja', 'zh'],
   qwen_custom_voice: ['zh', 'en', 'ja', 'ko', 'de', 'fr', 'ru', 'pt', 'es', 'it'],
+  dots_tts: [
+    'ar', 'cs', 'da', 'de', 'el', 'en', 'es', 'fi', 'fr', 'hi',
+    'it', 'ja', 'ko', 'ms', 'nl', 'no', 'pl', 'pt', 'ro', 'ru',
+    'sv', 'th', 'tr', 'zh',
+  ],
 } as const;
 
 /** Helper: get language options for a given engine. */

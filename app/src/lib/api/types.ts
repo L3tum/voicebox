@@ -70,7 +70,7 @@ export interface GenerationRequest {
   text: string;
   language: LanguageCode;
   seed?: number;
-  model_size?: '1.7B' | '0.6B' | '1B' | '3B';
+  model_size?: '1.7B' | '0.6B' | '1B' | '3B' | 'soar' | 'base' | 'mf';
   engine?:
     | 'qwen'
     | 'qwen_custom_voice'
@@ -78,7 +78,8 @@ export interface GenerationRequest {
     | 'chatterbox'
     | 'chatterbox_turbo'
     | 'tada'
-    | 'kokoro';
+    | 'kokoro'
+    | 'dots_tts';
   instruct?: string;
   /** When true and the profile has a personality prompt, input text is rewritten in-character before TTS. */
   personality?: boolean;
