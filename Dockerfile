@@ -4,7 +4,7 @@
 # ============================================================
 
 # === Stage 1: Build frontend ===
-FROM oven/bun:1 AS frontend
+FROM oven/bun:1@sha256:3aa040e5445efa09d75bb428a64ba50db13e2b3ac9b6b0c7f145615f62b2ee18 AS frontend
 
 WORKDIR /build
 
@@ -22,7 +22,7 @@ RUN cd web && bunx --bun vite build
 
 
 # === Stage 2: Build Python dependencies ===
-FROM python:3.11-slim AS backend-builder
+FROM python:3.11-slim@sha256:7032841967d07aa3353905945dc186901c89b6b319c61425f4439f677a4a8a34 AS backend-builder
 
 WORKDIR /build
 
@@ -43,7 +43,7 @@ RUN pip install --no-cache-dir --prefix=/install \
 
 
 # === Stage 3: Runtime ===
-FROM python:3.11-slim
+FROM python:3.11-slim@sha256:7032841967d07aa3353905945dc186901c89b6b319c61425f4439f677a4a8a34
 
 # Create non-root user for security
 RUN groupadd -r voicebox && \
